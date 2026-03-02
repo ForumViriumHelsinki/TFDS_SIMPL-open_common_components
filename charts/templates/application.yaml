@@ -208,6 +208,18 @@ spec:
           podTemplate:
             spec:
               initContainers:
+              - name: git-clone
+                image: alpine/git
+                args:
+                - clone
+                - --single-branch
+                - --branch
+                - main
+                - https://code.europa.eu/simpl/simpl-open/development/monitoring/eck-monitoring.git
+                - /mnt/ilm/
+                volumeMounts:
+                - mountPath: /mnt/ilm/
+                  name: repo
               - name: load-objects
                 command:
                 - /usr/bin/bash
@@ -221,6 +233,26 @@ spec:
                   sed -i "s|/usr/share/logstash-beats/ilm/|/usr/share/logstash/ilm/logstash-|g" ./load_objects.sh;
                   chmod +x ./load_objects.sh;
                   ./load_objects.sh 2>&1 || true
+                env:
+                - name: RELEASE_NAME
+                  value: {{ .Values.monitoring.fullnameOverride }}
+                - name: ELASTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: elastic
+                      name: {{ .Values.monitoring.fullnameOverride }}-elasticsearch-es-elastic-user
+                volumeMounts:
+                - mountPath: /mnt/ilm/
+                  name: repo
+                - mountPath: /usr/share/logstash/ilm/logstash-business-ilm.json
+                  name: logstash-business-ilm-vol
+                  subPath: logstash-business-ilm.json
+                - mountPath: /usr/share/logstash/ilm/logstash-technical-ilm.json
+                  name: logstash-technical-ilm-vol
+                  subPath: logstash-technical-ilm.json
+                - mountPath: /usr/share/logstash/ilm/logstash-filebeat-ilm.json
+                  name: logstash-filebeat-ilm-vol
+                  subPath: logstash-filebeat-ilm.json
           {{- if eq .Values.resourcePreset "low" }}
           resources:
             requests:
