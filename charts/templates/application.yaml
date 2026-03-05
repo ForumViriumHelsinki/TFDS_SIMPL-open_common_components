@@ -131,6 +131,10 @@ spec:
           role: {{ .Values.secrets.role }}
         agentList:
           {{- toYaml .Values.agentList | nindent 10 }}
+        kubernetesRole:
+          bound_service_account_names: ["*"]
+          bound_service_account_namespaces: [{{ join "," (concat .Values.agentList.authorities .Values.agentList.providers .Values.agentList.consumers (list .Values.cluster.namespace) (list (printf "%s-vswh" .Values.cluster.namespace))) }}]
+          policies: ["example-policy"]
   {{- if .Values.monitoring.enabled }}
   - repoURL: {{ .Values.monitoring.operator.repo_URL }}
     targetRevision: {{ .Values.monitoring.operator.targetRevision }}
