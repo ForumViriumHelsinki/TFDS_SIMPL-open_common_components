@@ -36,6 +36,12 @@ spec:
       values: |
         fullnameOverride: openbao-{{ .Release.Namespace }}
         server:
+          {{- if eq .Values.resourcePreset "low" }}
+          ha:
+            enabled: true
+            replicas: 1
+          affinity: {}
+          {{- end }}
           ingress:
             annotations:
               cert-manager.io/cluster-issuer: {{ .Values.cluster.issuer }}
@@ -45,8 +51,15 @@ spec:
               - secretName: openbao-{{ .Values.namespaceTag }}-tls
                 hosts:
                   - secrets.{{ .Values.namespaceTag }}.{{ .Values.domainSuffix }}
-        {{- if .Values.openbao.resources }}
+        {{- if eq .Values.resourcePreset "low" }}
+        resources:
+          requests:
+            cpu: "0"
+            memory: "0"
+        {{- else }}
+          {{- if .Values.openbao.resources }}
         resources: {{- toYaml .Values.openbao.resources | nindent 10 }}
+          {{- end }}
         {{- end }}
   - repoURL: "https://code.europa.eu/api/v4/projects/{{ .Values.openbao_init.projectID }}/packages/helm/stable"
     targetRevision: {{ .Values.openbao_init.targetRevision }}
