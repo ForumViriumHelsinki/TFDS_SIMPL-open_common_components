@@ -49,6 +49,18 @@ spec:
           }
           EOF
 
+          bao policy write eso-read-secrets - <<EOF
+          path "auth/kubernetes/login" {
+            capabilities = ["update"]
+          }
+          path "secret/data/cloud-accounts/*" {
+            capabilities = ["create", "read", "update", "list"]
+          }
+          path "secret/data/cloud-accounts/*/*" {
+            capabilities = ["create", "read", "update", "list"]
+          }
+          EOF
+
           bao auth enable kubernetes || true
           
           # Use correctly templated host from values
@@ -61,6 +73,13 @@ spec:
             bound_service_account_names="{{ join "," .Values.kubernetesRole.bound_service_account_names }}" \
             bound_service_account_namespaces="{{ join "," .Values.kubernetesRole.bound_service_account_namespaces }}" \
             policies="{{ join "," .Values.kubernetesRole.policies }}"
+
+          # Restore ESO role
+          bao write auth/kubernetes/role/eso-role \
+            bound_service_account_names="eso" \
+            bound_service_account_namespaces="{{ .Release.Namespace }}" \
+            policies="eso-read-secrets" \
+            ttl="24h" || true
         env:
         - name: VAULT_TOKEN
           valueFrom: { secretKeyRef: { name: secrets-root-token, key: token } }
