@@ -7,13 +7,13 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/TatuE/so-cc.git'
+    repoURL: 'https://github.com/ForumViriumHelsinki/TFDS_SIMPL-open_common_components.git'
     path: charts
-    targetRevision: main                          # version of package
+    targetRevision: 3.0.0                          # version of package
     helm:
       values: |
         values:
-          branch: main                            # branch of repo with values
+          branch: feature/3.0.0_update                            # branch of repo with values
         resourcePreset: low                     # set to "low" to disable requests of resources
         agentList:                                  # list of all the agents to be deployed
           authorities:
