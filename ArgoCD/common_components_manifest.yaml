@@ -9,11 +9,11 @@ spec:
   source:
     repoURL: 'https://github.com/ForumViriumHelsinki/TFDS_SIMPL-open_common_components.git'
     path: charts
-    targetRevision: main                         # version of package
+    targetRevision: fix/openbao_provisioning_in_low_resource_preset                         # version of package
     helm:
       values: |
         values:
-          branch: main                            # branch of repo with values
+          branch: fix/openbao_provisioning_in_low_resource_preset                            # branch of repo with values
         resourcePreset: low                     # set to "low" to disable requests of resources
         agentList:                                  # list of all the agents to be deployed
           authorities:
