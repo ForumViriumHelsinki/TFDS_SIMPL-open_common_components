@@ -14,7 +14,7 @@
     - [Init-bao job issues](#init-bao-job-issues)
     - [Failing pod restart](#failing-pod-restart)
     - [Monitoring](#monitoring)
-    - [OpenBoa Configuration](#openboa-configuration)
+    - [OpenBao Configuration](#openbao-configuration)
     - [Redis Commander](#redis-commander)
   - [Troubleshooting](#troubleshooting)
 <!-- /TOC -->
@@ -78,13 +78,13 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/TatuE/so-cc.git'
-    path: '.'
-    targetRevision: main                          # version of package
+    repoURL: 'https://code.europa.eu/api/v4/projects/951/packages/helm/stable'
+    path: '""'
+    targetRevision: 3.0.0                           # version of package
     helm:
       values: |
         values:
-          branch: v2.4.2                            # branch of repo with values
+          branch: v3.0.0                            # branch of repo with values
         resourcePreset: default                     # set to "low" to disable requests of resources
         agentList:                                  # list of all the agents to be deployed
           authorities:
@@ -142,7 +142,7 @@ There are a couple of variables you need to replace - described below. The rest 
 
 ```YAML
 values:
-  branch: v2.4.2                            # branch of repo with values
+  branch: v3.0.0                            # branch of repo with values
 resourcePreset: default                     # set to "low" to disable requests of resources
 agentList:                                  # list of all the agents to be deployed
   authorities:
@@ -225,10 +225,10 @@ Its deployment can be disabled by switch the value monitoring.enabled to false.
 When it's enabled, after the stack is deployed, you can access the ELK stack UI by <https://kibana.**namespacetag**.**domainSuffix**>
 Default user is "elastic", its password can be extracted by kubectl command. `kubectl get secret elastic-elasticsearch-es-elastic-user -o go-template='{{.data.elastic | base64decode}}' -n {namespace}`
 
-### OpenBoa Configuration
+### OpenBao Configuration
 
-The description of configuring and using OpenBoa is in a separate document:
-<https://code.europa.eu/simpl/simpl-open/development/agents/common_components/-/blob/main/documents/Using_OpenBao.md>
+The description of configuring and using OpenBao is in a separate document:
+<https://code.europa.eu/simpl/simpl-open/development/agents/common_components/-/blob/main/documents/user-manual/Using_OpenBao.md>
 
 Please read this document before proceeding to install and configure other SIMPL-OPEN agents(namespaces).
 
@@ -236,14 +236,22 @@ Please read this document before proceeding to install and configure other SIMPL
 
 Redis commander is a frontend allowing to visualise the data stored in redis-master, this tool is not required for end user to the SIMPL-Middleware is it need for the developer of the middleware
 
-![Redis_commander](images/RedisCommander.png)
+<img src="../images/RedisCommander.png" alt="Redis012" width="400"><BR>
 
 The password for redis commander is stored in a OpenBao Secret in the OpenBao "common-redis secret".
 
 Note!!! To log in, we use the password stored in the "rediscommander" variable, but as a username, we should enter "admin" and not "rediscommander"!
 
-<img src="images/Redis01.png" alt="Redis012" width="400"><BR>
-<img src="images/Redis02.png" alt="Redis02" width="400"><BR>
+<img src="../images/Redis01.png" alt="Redis012" width="400"><BR>
+<img src="../images/Redis02.png" alt="Redis02" width="400"><BR>
+
+### Kafka Administration
+
+The description of Kafla Administration tool is in a separate document: <https://code.europa.eu/simpl/simpl-open/development/agents/common_components/-/blob/main/documents/user-manual/KAFKA_ADMINISTRATION.md>
+
+### PostgreSQL Administation
+
+The description of PostgreSQL  Administration tool is in a separate document: <https://code.europa.eu/simpl/simpl-open/development/agents/common_components/-/blob/main/documents/user-manual/POSTGRESQL_ADMINISTRATION.md>
 
 ## Troubleshooting
 
