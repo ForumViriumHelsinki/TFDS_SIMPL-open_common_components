@@ -139,7 +139,7 @@ spec:
           policies: ["example-policy"]
         # Force job recreation on sync
         job:
-          name: openbao-config-{{ .Release.Revision | default "v1" }}
+          name: openbao-config-{{ .Release.Revision | default "v2" }}
   {{- if .Values.monitoring.enabled }}
   - repoURL: {{ .Values.monitoring.operator.repo_URL }}
     targetRevision: {{ .Values.monitoring.operator.targetRevision }}
