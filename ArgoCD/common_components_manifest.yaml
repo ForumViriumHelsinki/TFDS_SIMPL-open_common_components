@@ -9,11 +9,11 @@ spec:
   source:
     repoURL: 'https://github.com/ForumViriumHelsinki/TFDS_SIMPL-open_common_components.git'
     path: charts
-    targetRevision: feature/3.0.0_update                          # version of package
+    targetRevision: main                         # version of package
     helm:
       values: |
         values:
-          branch: feature/3.0.0_update                            # branch of repo with values
+          branch: main                            # branch of repo with values
         resourcePreset: low                     # set to "low" to disable requests of resources
         agentList:                                  # list of all the agents to be deployed
           authorities:
