@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: 'https://github.com/ForumViriumHelsinki/TFDS_SIMPL-open_common_components.git'
     path: charts
-    targetRevision: 3.0.0                          # version of package
+    targetRevision: feature/3.0.0_update                          # version of package
     helm:
       values: |
         values:
