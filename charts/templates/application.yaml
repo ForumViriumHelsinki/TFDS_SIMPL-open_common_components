@@ -108,26 +108,6 @@ spec:
       name: schema-manager-secret
       jsonPointers:
         - /data
-    - group: acid.zalan.do
-      kind: postgresql
-    - group: elasticsearch.k8s.elastic.co
-      kind: Elasticsearch
-    - group: kibana.k8s.elastic.co
-      kind: Kibana
-    - group: beat.k8s.elastic.co
-      kind: Beat
-    - group: platform.confluent.io
-      kind: Kafka
-    - group: platform.confluent.io
-      kind: KRaftController
-    - kind: Secret
-      name: redpanda
-      jsonPointers:
-        - /data
-    - kind: Secret
-      name: kafka-users-secret
-      jsonPointers:
-        - /data
   project: {{ .Values.project }}
   destination:
     server: {{ .Values.cluster.address }}
@@ -151,10 +131,6 @@ spec:
           role: {{ .Values.secrets.role }}
         agentList:
           {{- toYaml .Values.agentList | nindent 10 }}
-        kubernetesRole:
-          bound_service_account_names: ["*"]
-          bound_service_account_namespaces: [{{ join "," (concat .Values.agentList.authorities .Values.agentList.providers .Values.agentList.consumers (list .Values.cluster.namespace) (list (printf "%s-vswh" .Values.cluster.namespace))) }}]
-          policies: ["example-policy"]
   {{- if .Values.monitoring.enabled }}
   - repoURL: {{ .Values.monitoring.operator.repo_URL }}
     targetRevision: {{ .Values.monitoring.operator.targetRevision }}
@@ -205,54 +181,6 @@ spec:
         logstash:
           diskSpace: {{ .Values.monitoring.params.diskSpace.logstash }}
           count_beats: {{ .Values.monitoring.params.count.logstash }}
-          podTemplate:
-            spec:
-              initContainers:
-              - name: git-clone
-                image: alpine/git
-                args:
-                - clone
-                - --single-branch
-                - --branch
-                - main
-                - https://code.europa.eu/simpl/simpl-open/development/monitoring/eck-monitoring.git
-                - /mnt/ilm/
-                volumeMounts:
-                - mountPath: /mnt/ilm/
-                  name: repo
-              - name: load-objects
-                command:
-                - /usr/bin/bash
-                - -c
-                - |
-                  cd /mnt/ilm/charts/kibana/scripts;
-                  export STACK_VERSION={{ .Values.monitoring.targetRevision }};
-                  export RELEASE_NAME={{ .Values.monitoring.fullnameOverride }};
-                  sed -i "1s/^\xEF\xBB\xBF//" ./load_objects.sh;
-                  sed -i "s/while :/for loop_i in 1 2 3/g" ./load_objects.sh;
-                  sed -i "s|/usr/share/logstash-beats/ilm/|/usr/share/logstash/ilm/logstash-|g" ./load_objects.sh;
-                  chmod +x ./load_objects.sh;
-                  ./load_objects.sh 2>&1 || true
-                env:
-                - name: RELEASE_NAME
-                  value: {{ .Values.monitoring.fullnameOverride }}
-                - name: ELASTIC_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      key: elastic
-                      name: {{ .Values.monitoring.fullnameOverride }}-elasticsearch-es-elastic-user
-                volumeMounts:
-                - mountPath: /mnt/ilm/
-                  name: repo
-                - mountPath: /usr/share/logstash/ilm/logstash-business-ilm.json
-                  name: logstash-business-ilm-vol
-                  subPath: logstash-business-ilm.json
-                - mountPath: /usr/share/logstash/ilm/logstash-technical-ilm.json
-                  name: logstash-technical-ilm-vol
-                  subPath: logstash-technical-ilm.json
-                - mountPath: /usr/share/logstash/ilm/logstash-filebeat-ilm.json
-                  name: logstash-filebeat-ilm-vol
-                  subPath: logstash-filebeat-ilm.json
           {{- if eq .Values.resourcePreset "low" }}
           resources:
             requests:
@@ -437,9 +365,9 @@ spec:
         - $values/app-values/pg-cluster/{{ . }}
         {{- end }}
       values: |
-        authorityList: {{ .Values.agentList.authorities }}
-        consumerList: {{ .Values.agentList.consumers }}
-        providerList: {{ .Values.agentList.providers }}
+        authorityList: {{ toYaml .Values.agentList.authorities | nindent 10 }}
+        consumerList: {{ toYaml .Values.agentList.consumers | nindent 10 }}
+        providerList: {{ toYaml .Values.agentList.providers | nindent 10 }}
         volumeSize: {{ .Values.pg_cluster.volumeSize }}
         {{- if eq .Values.resourcePreset "low" }}
         resources:

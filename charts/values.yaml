@@ -27,7 +27,7 @@ secrets:
   role: ${SECRETROLE}
 
 values:
-  repo_URL: https://github.com/TatuE/so-cc.git
+  repo_URL: https://github.com/ForumViriumHelsinki/TFDS_SIMPL-open_common_components.git
   branch: main
 
 openbao_init:
@@ -37,7 +37,7 @@ openbao_init:
 
 openbao_config:
   projectID: "1258"
-  targetRevision: 1.1.2
+  targetRevision: 1.2.3
   chart_name: openbao-config
 
 openbao:
@@ -62,7 +62,7 @@ monitoring:
     valueFiles:
       - values.yaml
   projectID: "828"
-  targetRevision: 0.2.0
+  targetRevision: 0.3.1
   chart_name: eck-monitoring
   fullnameOverride: elastic
   resources:
@@ -181,7 +181,7 @@ pg_admin:
 
 pg_cluster:
   projectID: "1024"
-  targetRevision: 1.0.1
+  targetRevision: 1.1.1
   chart_name: pg-cluster
   volumeSize: 30Gi
   resources:
@@ -190,13 +190,13 @@ pg_cluster:
       memory: 400Mi
     limits:
       cpu: 500m
-      memory: 500Mi
+      memory: 1Gi
   valueFiles:
     - values.yaml
 
 notification:
   projectID: "1002"
-  targetRevision: 2.1.0
+  targetRevision: 2.1.1
   nameOverride: simpl-notification
   chart_name: simpl-notification-service
   resources:
@@ -220,7 +220,7 @@ mailpit:
 
 infrastructure_consumption_monitoring_service:
   projectID: "1240"
-  targetRevision: 2.0.1
+  targetRevision: 2.3.1
   nameOverride: infrastructure-consumption-monitoring-service
   chart_name: infrastructure-consumption-monitoring-service
   resources:
