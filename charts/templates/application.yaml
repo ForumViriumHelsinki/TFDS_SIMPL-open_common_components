@@ -48,6 +48,7 @@ spec:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
       - ServerSideApply=true
+      - Replace=true
   ignoreDifferences:
     - kind: Secret
       name: logstash-writer-secret
