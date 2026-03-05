@@ -56,11 +56,11 @@ spec:
             kubernetes_host="{{ .Values.kubernetesHost }}" \
             disable_iss_validation=true
 
-          # Use correctly templated role patterns from values
+          # Use comma-separated strings instead of JSON lists to avoid double-nesting issues
           bao write auth/kubernetes/role/{{ .Values.secrets.role }} \
-            bound_service_account_names={{ .Values.kubernetesRole.bound_service_account_names | toJson }} \
-            bound_service_account_namespaces={{ .Values.kubernetesRole.bound_service_account_namespaces | toJson }} \
-            policies={{ .Values.kubernetesRole.policies | toJson }}
+            bound_service_account_names="{{ join "," .Values.kubernetesRole.bound_service_account_names }}" \
+            bound_service_account_namespaces="{{ join "," .Values.kubernetesRole.bound_service_account_namespaces }}" \
+            policies="{{ join "," .Values.kubernetesRole.policies }}"
         env:
         - name: VAULT_TOKEN
           valueFrom: { secretKeyRef: { name: secrets-root-token, key: token } }
@@ -71,9 +71,6 @@ spec:
         command: ["sh", "-c"]
         args:
         - |
-          # Simplified for brevity, in a real scenario we'd copy the full logic if needed
-          # but here we focus on the fix. 
-          # Note: This is where we'd put the KV secrets.
           echo "Configuring secrets..."
         env:
         - name: VAULT_TOKEN
