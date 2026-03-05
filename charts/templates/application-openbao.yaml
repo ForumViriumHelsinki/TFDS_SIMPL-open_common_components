@@ -35,13 +35,14 @@ spec:
         {{- end }}
       values: |
         fullnameOverride: openbao-{{ .Release.Namespace }}
-        server:
-          {{- if eq .Values.resourcePreset "low" }}
-          ha:
-            enabled: true
-            replicas: 1
+        {{- if eq .Values.resourcePreset "low" }}
+        injector:
+          replicas: 1
           affinity: {}
-          {{- end }}
+        server:
+          affinity: {}
+        {{- end }}
+        server:
           ingress:
             annotations:
               cert-manager.io/cluster-issuer: {{ .Values.cluster.issuer }}
