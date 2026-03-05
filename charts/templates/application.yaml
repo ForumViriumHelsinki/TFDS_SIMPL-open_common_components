@@ -41,11 +41,14 @@ metadata:
 
 spec:
   syncPolicy:
-    automated: {}
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
       - ServerSideApply=true
+      - Replace=true
   ignoreDifferences:
     - kind: Secret
       name: logstash-writer-secret
@@ -116,9 +119,9 @@ spec:
   - repoURL: {{ .Values.values.repo_URL }}
     targetRevision: {{ .Values.values.branch }}
     ref: values
-  - repoURL: "https://code.europa.eu/api/v4/projects/{{ .Values.openbao_config.projectID }}/packages/helm/stable"
-    targetRevision: {{ .Values.openbao_config.targetRevision }}
-    chart: {{ .Values.openbao_config.chart_name }}
+  - repoURL: {{ .Values.values.repo_URL }}
+    targetRevision: {{ .Values.values.branch }}
+    path: charts/local/openbao-config
     helm:
       values: |
         cluster:
@@ -137,7 +140,7 @@ spec:
           policies: ["example-policy"]
         # Force job recreation on sync
         job:
-          name: openbao-config-{{ .Release.Revision | default "v1" }}
+          name: openbao-config-{{ .Release.Revision | default "v4" }}
   {{- if .Values.monitoring.enabled }}
   - repoURL: {{ .Values.monitoring.operator.repo_URL }}
     targetRevision: {{ .Values.monitoring.operator.targetRevision }}

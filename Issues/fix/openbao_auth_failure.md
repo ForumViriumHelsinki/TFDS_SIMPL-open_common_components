@@ -4,39 +4,33 @@
 **Severity:** MAJOR
 
 ## Description
-Security-layer authentication failures prevented several dependent services (Kafka, Redpanda, Notifications, ICMS) from retrieving credentials and secrets from the OpenBao instance. Services remained stuck in `Init:0/1` or `CrashLoopBackOff` states due to `403 Forbidden` errors during Vault Agent sidecar initialization.
+Security-layer authentication failures prevented several dependent services (Kafka, Redpanda, Notifications, ICMS) from retrieving credentials and secrets from OpenBao. Services remained stuck in `Init:0/1` or `CreateContainerConfigError` states.
 
-### Cause
-The failure was rooted in three specific misconfigurations within the Kubernetes auth engine of OpenBao:
-1.  **Incorrect API Host:** The auth method was configured with a hardcoded host IP (`10.3.0.1`) which did not match the cluster's internal API service (`10.43.0.1`).
-2.  **Unsupported Role Patterns:** The `example-role` utilized literal wildcard strings (e.g., `*-sa`, `*-service-account`) in `bound_service_account_names`. The OpenBao Kubernetes auth engine does not support these glob patterns; it requires either specific names or a single `*` to allow all service accounts in the permitted namespaces.
-3.  **Job Immutability:** Although a previous patch existed in the repository, it was not applied to the cluster because Kubernetes Jobs are immutable. ArgoCD saw the `openbao-config` Job as "Completed" and did not trigger a replacement, leaving the cluster in a stale, broken state from the initial deployment.
-
-### Effect
-- **Kafka, Notification, ICMS:** Stuck indefinitely in `Init:0/1` as the `vault-agent-init` container could not authenticate.
-- **Redpanda:** Entered `CrashLoopBackOff` because it could not connect to the stalled Kafka brokers.
-- **System Stability:** Critical middleware components were unable to start, breaking the entire common component stack.
+### Root Cause
+1.  **Buggy External Chart**: The external `openbao-config` chart (v1.2.3) ignored Helm value overrides, hardcoding the Kubernetes API host to `10.3.0.1` and using unsupported glob patterns (`*-sa`).
+2.  **Missing Secret Automation**: The `kafka-users-secret` required by Redpanda was not being created in Kubernetes, even though the data existed in OpenBao.
+3.  **Job Immutability**: ArgoCD was unable to update the configuration Job because Kubernetes Job specifications are immutable, leading to "SyncFailed" states.
 
 ### Solution & Remediation
-The fix was implemented in two stages:
-1.  **Immediate Recovery:** A manual fix-job was executed to reconfigure the `auth/kubernetes/config` with the correct host (`https://kubernetes.default.svc.cluster.local`) and update `example-role` to use the supported `*` pattern.
-2.  **Permanent "Redundant" Patch:** The root application manifest was updated to solve the Job immutability problem. By adding a dynamic suffix to the Job name, we ensure that every Helm/ArgoCD sync creates a **new Job instance**, forcing the configuration to be re-applied and synchronized with the repository state.
+A comprehensive, automated fix was implemented:
+1.  **Local Configuration Chart**: Created `charts/local/openbao-config` to replace the faulty external chart. This allows for proper Helm templating of the OpenBao configuration script.
+2.  **Automated Secret Creation**: Added an init container (`4-pull-kafka-secrets`) to the configuration Job. This container automatically creates the `kafka-users-secret` in Kubernetes using the credentials stored in OpenBao, fulfilling the requirement for a fully automated deployment.
+3.  **Role & Policy Correction**: Fixed the Kubernetes auth host to use the internal DNS (`https://kubernetes.default.svc.cluster.local`) and updated the role binding to the supported `*` pattern.
+4.  **ArgoCD Robustness**: Updated `charts/templates/application.yaml` with `selfHeal: true`, `prune: true`, and `Replace=true` to ensure automatic recovery and handling of immutable Jobs.
 
-### Implementation Patch
+### Implementation Patch (Final)
 **Location:** `charts/templates/application.yaml`
-**Change:** Forced Job recreation and corrected auth parameters.
-
 ```yaml
-# Source: charts/templates/application.yaml
-- repoURL: "https://code.europa.eu/api/v4/projects/{{ .Values.openbao_config.projectID }}/packages/helm/stable"
-  helm:
-    values: |
-      kubernetesHost: https://kubernetes.default.svc.cluster.local
-      kubernetesRole:
-        bound_service_account_names: ["*"]
-        bound_service_account_namespaces: [{{ join "," (concat .Values.agentList.authorities .Values.agentList.providers .Values.agentList.consumers (list .Values.cluster.namespace) (list (printf "%s-vswh" .Values.cluster.namespace))) }}]
-        policies: ["example-policy"]
-      # Force job recreation on sync to overcome Kubernetes Job immutability
-      job:
-        name: openbao-config-{{ .Release.Revision | default "v1" }}
+  - repoURL: {{ .Values.values.repo_URL }}
+    targetRevision: {{ .Values.values.branch }}
+    path: charts/local/openbao-config
+    helm:
+      values: |
+        kubernetesHost: https://kubernetes.default.svc.cluster.local
+        kubernetesRole:
+          bound_service_account_names: ["*"]
+          ...
+        # Force job recreation on sync
+        job:
+          name: openbao-config-{{ .Release.Revision | default "v4" }}
 ```
