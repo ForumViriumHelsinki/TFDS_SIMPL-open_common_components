@@ -17,6 +17,7 @@ spec:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
       - ServerSideApply=true
+      - Replace=true
   project: {{ .Values.project }}
   destination:
     server: {{ .Values.cluster.address }}
@@ -39,10 +40,13 @@ spec:
         injector:
           replicas: 1
           affinity: {}
-        server:
-          affinity: {}
         {{- end }}
         server:
+          {{- if eq .Values.resourcePreset "low" }}
+          affinity: {}
+          dataStorage:
+            enabled: true
+          {{- end }}
           ingress:
             annotations:
               cert-manager.io/cluster-issuer: {{ .Values.cluster.issuer }}
