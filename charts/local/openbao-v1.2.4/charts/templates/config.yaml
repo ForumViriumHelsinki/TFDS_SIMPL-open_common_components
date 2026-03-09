@@ -68,7 +68,6 @@ spec:
             bao auth enable kubernetes || true
             bao write auth/kubernetes/config kubernetes_host=https://kubernetes.default.svc
             bao write auth/kubernetes/role/{{ .Values.secrets.secretEngine }}-role \
-            # bound_service_account_names="*" \ # Use this is literal wild cards are a problem
             bound_service_account_names="*-sa","*-service-account","*-service","*-consumption-be","*-svc-account",'*{{ regexReplaceAll "^.*(.)$" .Values.cluster.namespace "${1}" }}',"default","keycloak","edc-connector-adapter" \
             bound_service_account_namespaces={{ range $index, $item := (concat $authorities $providers $consumers (list $namespace) (list (printf "%s-vswh" $namespace))) }}{{if $index}},{{end}}"{{ $item }}"{{ end }} \
             policies="{{ .Values.secrets.secretEngine }}-policy" || true
