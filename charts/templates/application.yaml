@@ -1,35 +1,35 @@
 {{- $authorities := .Values.agentList.authorities | default (list) }}
-  {{- $providers := .Values.agentList.providers | default (list) }}
-  {{- $consumers := .Values.agentList.consumers | default (list) }}
-  {{- $namespace := .Values.cluster.namespace | default "" }}
+{{- $providers := .Values.agentList.providers | default (list) }}
+{{- $consumers := .Values.agentList.consumers | default (list) }}
+{{- $namespace := .Values.cluster.namespace | default "" }}
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: "{{ .Values.cluster.namespace }}-vswh"
-  {{- range .Values.agentList.authorities }}
+{{- range .Values.agentList.authorities }}
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ . }}
-  {{- end }}
+{{- end }}
 
-  {{- range .Values.agentList.consumers }}
+{{- range .Values.agentList.consumers }}
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ . }}
-  {{- end }}
+{{- end }}
 
-  {{- range .Values.agentList.providers }}
+{{- range .Values.agentList.providers }}
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ . }}
-  {{- end }}
+{{- end }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -113,23 +113,23 @@ spec:
     server: {{ .Values.cluster.address }}
     namespace: {{ .Values.cluster.namespace }}
   sources:
-    - repoURL: {{ .Values.values.repo_URL }}
-      targetRevision: {{ .Values.values.branch }}
-      ref: values
-    - repoURL: {{ .Values.values.repo_URL }}
-      targetRevision: {{ .Values.values.branch }}
-      path: charts/local/openbao-v1.2.4/charts
-      helm:
-        values: |
-          cluster:
-            namespace: {{ .Values.cluster.namespace }}
-          namespaceTag: {{ .Values.namespaceTag }}
-          domainSuffix: {{ .Values.domainSuffix }}
-          secrets:
-            secretEngine: {{ .Values.secrets.secretEngine }}
-            role: {{ .Values.secrets.role }}
-          agentList:
-            {{- toYaml .Values.agentList | nindent 12 }}
+  - repoURL: {{ .Values.values.repo_URL }}
+    targetRevision: {{ .Values.values.branch }}
+    ref: values
+  - repoURL: {{ .Values.values.repo_URL }}
+    targetRevision: {{ .Values.values.branch }}
+    path: charts/local/openbao-v1.2.4/charts
+    helm:
+      values: |
+        cluster:
+          namespace: {{ .Values.cluster.namespace }}
+        namespaceTag: {{ .Values.namespaceTag }}
+        domainSuffix: {{ .Values.domainSuffix }}
+        secrets:
+          secretEngine: {{ .Values.secrets.secretEngine }}
+          role: {{ .Values.secrets.role }}
+        agentList:
+          {{- toYaml .Values.agentList | nindent 10 }}
   {{- if .Values.monitoring.enabled }}
   - repoURL: {{ .Values.monitoring.operator.repo_URL }}
     targetRevision: {{ .Values.monitoring.operator.targetRevision }}
@@ -174,7 +174,7 @@ spec:
               memory: "0"
           {{- else }}
             {{- if .Values.monitoring.resources.elasticsearch }}
-          resources: {{- toYaml .Values.monitoring.resources.elasticsearch | nindent 14 }}
+          resources: {{- toYaml .Values.monitoring.resources.elasticsearch | nindent 12 }}
             {{- end }}
           {{- end }}
         logstash:
@@ -187,7 +187,7 @@ spec:
               memory: "0"
           {{- else }}
             {{- if .Values.monitoring.resources.logstash }}
-          resources: {{- toYaml .Values.monitoring.resources.logstash | nindent 14 }}
+          resources: {{- toYaml .Values.monitoring.resources.logstash | nindent 12 }}
             {{- end }}
           {{- end }}
         kibana:
@@ -199,7 +199,7 @@ spec:
               memory: "0"
           {{- else }}
             {{- if .Values.monitoring.resources.kibana }}
-          resources: {{- toYaml .Values.monitoring.resources.kibana | nindent 14 }}
+          resources: {{- toYaml .Values.monitoring.resources.kibana | nindent 12 }}
             {{- end }}
           {{- end }}
         filebeat:
@@ -210,7 +210,7 @@ spec:
               memory: "0"
           {{- else }}
             {{- if .Values.monitoring.resources.filebeat }}
-          resources: {{- toYaml .Values.monitoring.resources.filebeat | nindent 14 }}
+          resources: {{- toYaml .Values.monitoring.resources.filebeat | nindent 12 }}
             {{- end }}
           {{- end }}
         metricbeat:
@@ -221,7 +221,7 @@ spec:
               memory: "0"
           {{- else }}
             {{- if .Values.monitoring.resources.metricbeat }}
-          resources: {{- toYaml .Values.monitoring.resources.metricbeat | nindent 14 }}
+          resources: {{- toYaml .Values.monitoring.resources.metricbeat | nindent 12 }}
             {{- end }}
           {{- end }}
   {{- end }}
@@ -265,7 +265,7 @@ spec:
               memory: "0"
           {{- else }}
             {{- if .Values.kafka.resources.kafka }}
-          resources: {{- toYaml .Values.kafka.resources.kafka | nindent 14 }}
+          resources: {{- toYaml .Values.kafka.resources.kafka | nindent 12 }}
             {{- end }}
           {{- end }}
         kraftController:
@@ -279,7 +279,7 @@ spec:
               memory: "0"
           {{- else }}
             {{- if .Values.kafka.resources.kraftController }}
-          resources: {{- toYaml .Values.kafka.resources.kraftController | nindent 14 }}
+          resources: {{- toYaml .Values.kafka.resources.kraftController | nindent 12 }}
             {{- end }}
           {{- end }}
         hashicorp:
@@ -339,7 +339,7 @@ spec:
             memory: "0"
         {{- else }}
           {{- if .Values.redpanda.resources }}
-        resources: {{- toYaml .Values.redpanda.resources | nindent 12 }}
+        resources: {{- toYaml .Values.redpanda.resources | nindent 10 }}
           {{- end }}
         {{- end }}
   - repoURL: {{ .Values.pg_operator.repo_URL }}
@@ -364,9 +364,9 @@ spec:
         - $values/app-values/pg-cluster/{{ . }}
         {{- end }}
       values: |
-        authorityList: {{ toYaml .Values.agentList.authorities | nindent 12 }}
-        consumerList: {{ toYaml .Values.agentList.consumers | nindent 12 }}
-        providerList: {{ toYaml .Values.agentList.providers | nindent 12 }}
+        authorityList: {{ toYaml .Values.agentList.authorities | nindent 10 }}
+        consumerList: {{ toYaml .Values.agentList.consumers | nindent 10 }}
+        providerList: {{ toYaml .Values.agentList.providers | nindent 10 }}
         volumeSize: {{ .Values.pg_cluster.volumeSize }}
         {{- if eq .Values.resourcePreset "low" }}
         resources:
@@ -375,7 +375,7 @@ spec:
             memory: "0"
         {{- else }}
           {{- if .Values.pg_cluster.resources }}
-        resources: {{- toYaml .Values.pg_cluster.resources | nindent 12 }}
+        resources: {{- toYaml .Values.pg_cluster.resources | nindent 10 }}
           {{- end }}
         {{- end }}
   {{- if .Values.pg_admin.enabled }}
@@ -418,7 +418,7 @@ spec:
             memory: "0"
         {{- else }}
           {{- if .Values.pg_admin.resources }}
-        resources: {{- toYaml .Values.pg_admin.resources | nindent 12 }}
+        resources: {{- toYaml .Values.pg_admin.resources | nindent 10 }}
           {{- end }}
         {{- end }}
   {{- end }}
@@ -455,7 +455,7 @@ spec:
             memory: "0"
         {{- else }}
           {{- if .Values.notification.resources }}
-        resources: {{- toYaml .Values.notification.resources | nindent 12 }}
+        resources: {{- toYaml .Values.notification.resources | nindent 10 }}
           {{- end }}
         {{- end }}
   {{- if .Values.mailpit.enabled }}
@@ -505,6 +505,6 @@ spec:
             memory: "0"
         {{- else }}
           {{- if .Values.notification.resources }}
-        resources: {{- toYaml .Values.notification.resources | nindent 12 }}
+        resources: {{- toYaml .Values.notification.resources | nindent 10 }}
           {{- end }}
         {{- end }}
