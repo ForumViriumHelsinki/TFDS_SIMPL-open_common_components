@@ -2,16 +2,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: openbao-config
-  labels:
-    app: openbao-config
 spec:
-  selector:
-    matchLabels:
-      app: openbao-config
   template:
-    metadata:
-      labels:
-        app: openbao-config
     spec:
       serviceAccountName: openbao-{{ .Values.cluster.namespace }}-svc-account
       initContainers:
