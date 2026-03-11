@@ -66,9 +66,9 @@ spec:
         resources: {{- toYaml .Values.openbao.resources | nindent 10 }}
           {{- end }}
         {{- end }}
-  - repoURL: "https://code.europa.eu/api/v4/projects/{{ .Values.openbao_init.projectID }}/packages/helm/stable"
-    targetRevision: {{ .Values.openbao_init.targetRevision }}
-    chart: {{ .Values.openbao_init.chart_name }}
+  - repoURL: {{ .Values.values.repo_URL }}
+    targetRevision: {{ .Values.values.branch }}
+    path: charts/local/openbao-init-v1.0.0/charts
     helm:
       values: |
         cluster:

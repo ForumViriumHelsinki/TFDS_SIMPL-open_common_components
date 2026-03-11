@@ -1,35 +1,35 @@
 {{- $authorities := .Values.agentList.authorities | default (list) }}
-  {{- $providers := .Values.agentList.providers | default (list) }}
-  {{- $consumers := .Values.agentList.consumers | default (list) }}
-  {{- $namespace := .Values.cluster.namespace | default "" }}
+{{- $providers := .Values.agentList.providers | default (list) }}
+{{- $consumers := .Values.agentList.consumers | default (list) }}
+{{- $namespace := .Values.cluster.namespace | default "" }}
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: "{{ .Values.cluster.namespace }}-vswh"
-  {{- range .Values.agentList.authorities }}
+{{- range .Values.agentList.authorities }}
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ . }}
-  {{- end }}
+{{- end }}
 
-  {{- range .Values.agentList.consumers }}
+{{- range .Values.agentList.consumers }}
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ . }}
-  {{- end }}
+{{- end }}
 
-  {{- range .Values.agentList.providers }}
+{{- range .Values.agentList.providers }}
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ . }}
-  {{- end }}
+{{- end }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -113,23 +113,23 @@ spec:
     server: {{ .Values.cluster.address }}
     namespace: {{ .Values.cluster.namespace }}
   sources:
-    - repoURL: {{ .Values.values.repo_URL }}
-      targetRevision: {{ .Values.values.branch }}
-      ref: values
-    - repoURL: "https://code.europa.eu/api/v4/projects/{{ .Values.openbao_config.projectID }}/packages/helm/stable"
-      targetRevision: {{ .Values.openbao_config.targetRevision }}
-      chart: {{ .Values.openbao_config.chart_name }}
-      helm:
-        values: |
-          cluster:
-            namespace: {{ .Values.cluster.namespace }}
-          namespaceTag: {{ .Values.namespaceTag }}
-          domainSuffix: {{ .Values.domainSuffix }}
-          secrets:
-            secretEngine: {{ .Values.secrets.secretEngine }}
-            role: {{ .Values.secrets.role }}
-          agentList:
-            {{- toYaml .Values.agentList | nindent 10 }}
+  - repoURL: {{ .Values.values.repo_URL }}
+    targetRevision: {{ .Values.values.branch }}
+    ref: values
+  - repoURL: {{ .Values.values.repo_URL }}
+    targetRevision: {{ .Values.values.branch }}
+    path: charts/local/openbao-v1.2.4/charts
+    helm:
+      values: |
+        cluster:
+          namespace: {{ .Values.cluster.namespace }}
+        namespaceTag: {{ .Values.namespaceTag }}
+        domainSuffix: {{ .Values.domainSuffix }}
+        secrets:
+          secretEngine: {{ .Values.secrets.secretEngine }}
+          role: {{ .Values.secrets.role }}
+        agentList:
+          {{- toYaml .Values.agentList | nindent 10 }}
   {{- if .Values.monitoring.enabled }}
   - repoURL: {{ .Values.monitoring.operator.repo_URL }}
     targetRevision: {{ .Values.monitoring.operator.targetRevision }}
