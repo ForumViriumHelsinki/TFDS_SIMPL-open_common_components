@@ -2,13 +2,17 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: openbao-init
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   template:
     spec:
       serviceAccountName: openbao-{{ .Values.cluster.namespace }}-svc-account
       initContainers:
       - name: 0-init
-        image: "quay.io/openbao/openbao:2.4.0"
+        image: "quay.io/openbao/openbao:{{ .Values.imageTag }}"
         command: [sh, -c]
         args:
           - |
@@ -57,7 +61,7 @@ spec:
         - name: init-bao-volume
           mountPath: /data
       - name: 2-unseal
-        image: "quay.io/openbao/openbao:2.4.0"
+        image: "quay.io/openbao/openbao:{{ .Values.imageTag }}"
         command: [sh, -c]
         args:
           - |
