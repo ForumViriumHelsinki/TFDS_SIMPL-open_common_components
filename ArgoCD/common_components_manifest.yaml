@@ -2,32 +2,32 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   # name of the currently deploying app in argocd, this is the name that will be displayed in ArgoCD
-  name: 'common01-deployer'                         # name of the deploying app in argocd
+  name: 'common04-deployer'                         # name of the deploying app in argocd
   namespace: argocd                                 # namespace of your argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/ForumViriumHelsinki/TFDS_SIMPL-open_common_components.git'
     path: charts
-    targetRevision: fix/Openbao-authentication-failure                         # version of package
+    targetRevision: main                         # version of package
     helm:
       values: |
         values:
-          branch: fix/Openbao-authentication-failure                           # branch of repo with values
+          branch: main                           # branch of repo with values
         resourcePreset: low                     # set to "low" to disable requests of resources
         agentList:                                  # list of all the agents to be deployed
           authorities:
-            - authority01
+            - authority04
         project: default                            # Project to which the namespace is attached
-        namespaceTag: common01                      # identifier of deployment and part of fqdn
+        namespaceTag: common04                      # identifier of deployment and part of fqdn
         domainSuffix: ds.helsinki.tfds.io           # last part of fqdn
         argocd:
-          appname: common01                         # name of generated argocd app 
+          appname: common04                         # name of generated argocd app 
           namespace: argocd                         # namespace of your argocd
         cluster:
           # FQDN Fully Qualified Domain Name of your kubernetes cluster
           address: https://kubernetes.default.svc
-          namespace: common01                       # where the app will be deployed
+          namespace: common04                       # where the app will be deployed
           issuer: dev-prod                          # issuer of certificate
           internalIssuer: self-signed-issuer            # issuer of self-signed certificates
           kubeStateHost: kube-prometheus-stack-kube-state-metrics.devsecopstools.svc.cluster.local:8080    # link to kube-state-metrics svc
@@ -49,4 +49,4 @@ spec:
     # FQDN Fully Qualified Domain Name of your kubernetes cluster
     server: 'https://kubernetes.default.svc'
     # Name of the Kubernetes NameSpace in which the Common Tools will be deployed
-    namespace: common01
+    namespace: common04
