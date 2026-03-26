@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   # name of the currently deploying app in argocd, this is the name that will be displayed in ArgoCD
-  name: 'common04-deployer'                         # name of the deploying app in argocd
+  name: 'common-deployer'                         # name of the deploying app in argocd
   namespace: argocd                                 # namespace of your argocd
 spec:
   project: default
@@ -17,17 +17,17 @@ spec:
         resourcePreset: low                     # set to "low" to disable requests of resources
         agentList:                                  # list of all the agents to be deployed
           authorities:
-            - authority04
+            - authority
         project: default                            # Project to which the namespace is attached
-        namespaceTag: common04                      # identifier of deployment and part of fqdn
+        namespaceTag: common                      # identifier of deployment and part of fqdn
         domainSuffix: ds.helsinki.tfds.io           # last part of fqdn
         argocd:
-          appname: common04                         # name of generated argocd app 
+          appname: common                         # name of generated argocd app 
           namespace: argocd                         # namespace of your argocd
         cluster:
           # FQDN Fully Qualified Domain Name of your kubernetes cluster
           address: https://kubernetes.default.svc
-          namespace: common04                       # where the app will be deployed
+          namespace: common                       # where the app will be deployed
           issuer: dev-prod                          # issuer of certificate
           internalIssuer: self-signed-issuer            # issuer of self-signed certificates
           kubeStateHost: kube-prometheus-stack-kube-state-metrics.devsecopstools.svc.cluster.local:8080    # link to kube-state-metrics svc
@@ -44,9 +44,9 @@ spec:
           enabled: true
         monitoring:
           # set this value to true, to enable the monitoring features
-          enabled: true
+          enabled: false
   destination:
     # FQDN Fully Qualified Domain Name of your kubernetes cluster
     server: 'https://kubernetes.default.svc'
     # Name of the Kubernetes NameSpace in which the Common Tools will be deployed
-    namespace: common04
+    namespace: common
