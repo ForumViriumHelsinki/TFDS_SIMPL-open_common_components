@@ -15,9 +15,13 @@ spec:
         values:
           branch: main                           # branch of repo with values
         resourcePreset: low                     # set to "low" to disable requests of resources
-        agentList:                                  # list of all the agents to be deployed
+        agentList:                                  # list of all the agents to be deployed, note that for single node, only use one agent.
           authorities:
             - authority
+          consumers:
+            - consumer
+          providers:
+            - dataprovider
         project: default                            # Project to which the namespace is attached
         namespaceTag: common                      # identifier of deployment and part of fqdn
         domainSuffix: ds.helsinki.tfds.io           # last part of fqdn
