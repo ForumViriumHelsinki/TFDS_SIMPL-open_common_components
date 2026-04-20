@@ -72,3 +72,36 @@ After the Common Components are successfully running, you can proceed to deploy 
 * [Governance Authority](https://github.com/ForumViriumHelsinki/TFDS_SIMPL-open_governance_authority)
 * [Data Provider](https://github.com/ForumViriumHelsinki/TFDS_SIMPL-open_data_provider)
 * [Data Consumer](https://github.com/ForumViriumHelsinki/TFDS_SIMPL-open_data_consumer)
+
+---
+
+## 🛠️ Troubleshooting & Lifecycle Management
+
+### Handling Cluster Reboots (The OpenBao Seal)
+
+When a Kubernetes node reboots or the `openbao-common-0` pod is restarted, you will likely notice that all other dependent SIMPL-Open agents (Governance Authority, Data Provider, Data Consumer) fail to start or hang indefinitely. You may see errors in their logs such as:
+*   `tier2-gateway`: Hangs in a `404` or `503` loop waiting for credentials.
+*   `identity-provider` or `authentication-provider`: CrashLoopBackOff or fail their `/actuator/health` checks.
+
+#### The Root Cause
+This is **expected behavior** resulting from the security architecture of HashiCorp Vault (OpenBao). 
+
+When the OpenBao pod restarts, it boots into a **Sealed** state to protect its encrypted secrets. While sealed, it cannot serve any database credentials, TLS certificates, or configurations to the rest of the data space. Because ArgoCD only triggers Sync hooks on manifest changes or manual syncs, the `openbao-init` job (which contains the unseal commands) does not automatically run on a pod reboot.
+
+#### How to Fix It
+To fully recover the cluster after a hard reboot, you must manually unseal OpenBao and re-apply its configuration. This requires syncing two distinct applications in the ArgoCD UI.
+
+**The Recommended Fix (ArgoCD Sync):**
+
+**1. Unseal OpenBao:**
+   1. Open the ArgoCD UI and locate the **`openbao-common`** application.
+   2. Click **Sync**.
+   3. ArgoCD will recreate the `openbao-init` job. This job reads the `secrets-unseal-keys` from Kubernetes and unseals the OpenBao pod.
+
+**2. Reconfigure Pod Vaults:**
+   1. Wait until the `openbao-common-0` pod is fully `1/1 Running`.
+   2. Locate the main **`common-components`** application in ArgoCD.
+   3. Click **Sync**.
+   4. This sync triggers the `openbao-config` job, which is responsible for pushing the critical vault configuration and roles to the unsealed OpenBao instance.
+
+Within seconds of the final sync completing, all hanging agent pods across the data space (e.g., `tier2-gateway`, `identity-provider`) will securely fetch their secrets and instantly resume their boot sequences.
