@@ -105,3 +105,34 @@ To fully recover the cluster after a hard reboot, you must manually unseal OpenB
    4. This sync triggers the `openbao-config` job, which is responsible for pushing the critical vault configuration and roles to the unsealed OpenBao instance.
 
 Within seconds of the final sync completing, all hanging agent pods across the data space (e.g., `tier2-gateway`, `identity-provider`) will securely fetch their secrets and instantly resume their boot sequences.
+
+### Fixing the "Split-Brain" Kafka Authentication Bug
+
+If you manually delete or recreate the `kafka-users-secret` Kubernetes Secret after the initial deployment, you will cause a permanent "split-brain" authentication failure. Redpanda and other consumers will enter a `CrashLoopBackOff` state, constantly throwing `SASL_AUTHENTICATION_FAILED: Invalid username or password` errors in their logs.
+
+#### The Root Cause
+This occurs due to a synchronization mismatch between the two ArgoCD applications managing the cluster:
+1.  **`openbao-common`:** Generates the random passwords and stores them in the `kafka-users-secret` Kubernetes Secret (used by Redpanda, Notification, etc.).
+2.  **`common-components`:** Runs the `openbao-config` Job, which reads the Kubernetes Secret and pushes the passwords into the OpenBao KV store (used by Kafka).
+
+The `openbao-config` Job contains safety logic (`if ! bao kv get...`) that **prevents it from ever overwriting existing credentials in Vault**. 
+If you delete the Kubernetes Secret, ArgoCD generates a brand new one with fresh passwords. However, because passwords already exist in Vault from the first install, `openbao-config` refuses to update them. Kafka continues to enforce the old Vault passwords, while Redpanda attempts to use the new Kubernetes passwords.
+
+#### How to Fix It
+To resolve the split-brain state, you must manually delete the stale credentials from Vault to force the configuration job to synchronize them.
+
+1.  **Delete the Stale Vault Credentials:**
+    Log into the OpenBao Web UI (using your `secrets-root-token`) and manually delete the `common-kafka-credentials` secret from the KV engine.
+2.  **Force the Configuration Sync:**
+    Delete the completed configuration job so ArgoCD can recreate it:
+    ```bash
+    kubectl delete job openbao-config -n <common-namespace>
+    ```
+    Then, sync the main **`common-components`** application in ArgoCD. The job will run, see that the Vault secret is missing, and successfully push the *current* Kubernetes passwords into Vault.
+3.  **Restart the Kafka Ecosystem:**
+    Once the job completes, restart the affected pods so they fetch the synchronized passwords on boot:
+    ```bash
+    kubectl delete pod kafka-0 -n <common-namespace>
+    kubectl rollout restart deployment redpanda -n <common-namespace>
+    # Restart any other failing consumers (e.g., simpl-notification, icms)
+    ```
