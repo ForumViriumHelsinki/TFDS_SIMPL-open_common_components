@@ -446,7 +446,7 @@ spec:
             endpoint: http://collector.{{ .Values.namespaceTag }}.{{ .Values.domainSuffix }}
           {{- else }}
           otel:
-            endpoint: "none"
+            endpoint: ""
           {{- end }}
           {{- if .Values.mailpit.enabled }}
           mail:
@@ -511,7 +511,7 @@ spec:
               endpoint: http://collector.{{ .Values.namespaceTag }}.{{ .Values.domainSuffix }}
             {{- else }}
             otel:
-              endpoint: "none"
+              endpoint: ""
             {{- end }}
         {{- if eq .Values.resourcePreset "low" }}
         resources:
