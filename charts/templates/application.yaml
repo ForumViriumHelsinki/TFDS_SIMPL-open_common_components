@@ -442,10 +442,10 @@ spec:
           kafka:
             bootstrapServer: http://kafka.{{ .Values.cluster.namespace }}.svc.cluster.local:9092
           otel:
-            {{- if .Values.monitoring.enabled }}
             endpoint: http://collector.{{ .Values.namespaceTag }}.{{ .Values.domainSuffix }}
-            {{- else }}
-            endpoint: "http://localhost:9999"
+          env:
+            {{- if not .Values.monitoring.enabled }}
+            OTEL_SDK_DISABLED: "true"
             {{- end }}
           {{- if .Values.mailpit.enabled }}
           mail:
@@ -506,10 +506,10 @@ spec:
           kafka:
             bootstrapServer: http://kafka.{{ .Values.cluster.namespace }}.svc.cluster.local:9092
           otel:
-            {{- if .Values.monitoring.enabled }}
             endpoint: http://collector.{{ .Values.namespaceTag }}.{{ .Values.domainSuffix }}
-            {{- else }}
-            endpoint: "http://localhost:9999"
+          env:
+            {{- if not .Values.monitoring.enabled }}
+            OTEL_SDK_DISABLED: "true"
             {{- end }}
         {{- if eq .Values.resourcePreset "low" }}
         resources:
