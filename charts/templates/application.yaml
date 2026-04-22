@@ -441,13 +441,10 @@ spec:
               secretConfigPath: "{{ .Values.secrets.secretEngine }}/{{ .Values.cluster.namespace }}-notifications"
           kafka:
             bootstrapServer: http://kafka.{{ .Values.cluster.namespace }}.svc.cluster.local:9092
-          {{- if .Values.monitoring.enabled }}
           otel:
             endpoint: http://collector.{{ .Values.namespaceTag }}.{{ .Values.domainSuffix }}
-          {{- else }}
-          otel:
-            endpoint: ""
-          {{- end }}
+          env:
+            OTEL_JAVAAGENT_ENABLED: "{{ ternary "true" "false" .Values.monitoring.enabled }}"
           {{- if .Values.mailpit.enabled }}
           mail:
             smtpHost: mailpit-{{ .Values.cluster.namespace }}-smtp
@@ -506,13 +503,10 @@ spec:
               secretConfigPath: "{{ .Values.secrets.secretEngine }}/{{ .Values.cluster.namespace }}-icms"
           kafka:
             bootstrapServer: http://kafka.{{ .Values.cluster.namespace }}.svc.cluster.local:9092
-            {{- if .Values.monitoring.enabled }}
             otel:
               endpoint: http://collector.{{ .Values.namespaceTag }}.{{ .Values.domainSuffix }}
-            {{- else }}
-            otel:
-              endpoint: ""
-            {{- end }}
+          env:
+            OTEL_JAVAAGENT_ENABLED: "{{ ternary "true" "false" .Values.monitoring.enabled }}"
         {{- if eq .Values.resourcePreset "low" }}
         resources:
           requests:
