@@ -97,10 +97,20 @@ spec:
             bao kv put -mount={{ .Values.secrets.secretEngine }} {{ .Values.cluster.namespace }}-redpanda-credentials admin=$redpanda_pass
             bao kv put -mount={{ .Values.secrets.secretEngine }} {{ .Values.cluster.namespace }}-pgadmin-credentials password=$pgadmin_pass postgres=$postgres_pass
             if ! bao kv get -mount={{ .Values.secrets.secretEngine }} {{ .Values.cluster.namespace }}-notifications > /dev/null 2>&1; then
+              {{- if .Values.mailpit.enabled }}
               bao kv put -mount={{ .Values.secrets.secretEngine }} {{ .Values.cluster.namespace }}-notifications \
                 API_KEY=apikey \
                 KAFKA_CLIENT_PASSWORDS=$notification \
                 SMTP_PASSWORD=smtppass
+              {{- else }}
+              bao kv put -mount={{ .Values.secrets.secretEngine }} {{ .Values.cluster.namespace }}-notifications \
+                API_KEY=apikey \
+                KAFKA_CLIENT_PASSWORDS=$notification \
+                SMTP_PASSWORD="update-me-password" \
+                spring.mail.port="587" \
+                spring.mail.properties.mail.smtp.auth="true" \
+                spring.mail.properties.mail.smtp.starttls.enable="true"
+              {{- end }}
             fi
             if ! bao kv get -mount={{ .Values.secrets.secretEngine }} {{ .Values.cluster.namespace }}-icms > /dev/null 2>&1; then
               bao kv put -mount={{ .Values.secrets.secretEngine }} {{ .Values.cluster.namespace }}-icms \

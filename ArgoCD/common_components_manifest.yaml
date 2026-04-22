@@ -44,10 +44,14 @@ spec:
             # set this value to true, to have kafka creating automatically the required topics
             autocreate: true
         mailpit:
-          # set this value to true, to have mailpit activated
-          enabled: true
-        monitoring:
-          # set this value to true, to enable the monitoring features
+          # set this value to true, to have mailpit activated (sandbox mode)
+          enabled: false
+        smtp:
+          # Used by simpl-notification if mailpit.enabled is false
+          host: "smtp.ionos.de"
+          user: "dev@simpl-europe.eu"
+          defaultReceiver: "simpl_tech@simpl-europe.eu"
+        monitoring:          # set this value to true, to enable the monitoring features
           enabled: false
   destination:
     # FQDN Fully Qualified Domain Name of your kubernetes cluster

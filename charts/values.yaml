@@ -218,6 +218,11 @@ mailpit:
   valueFiles:
     - values.yaml
 
+smtp:
+  host: "smtp.ionos.de"
+  user: "dev@simpl-europe.eu"
+  defaultReceiver: "simpl_tech@simpl-europe.eu"
+
 infrastructure_consumption_monitoring_service:
   projectID: "1240"
   targetRevision: 2.3.1

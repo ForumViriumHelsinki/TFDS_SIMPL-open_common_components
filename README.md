@@ -52,6 +52,20 @@ Open this file and verify or update the `values` block to match your environment
    *   **Impact if `false`:** Skips deploying the heavy Elastic stack (`eck-operator`, Elasticsearch, Kibana), saving significant CPU and memory (Recommended for single-node).
    *   **Impact if `true`:** Installs the full observability stack for production-grade insights.
 
+5. **External SMTP Integration (Notifications):**
+   By default, the Common Components deploy a local `Mailpit` sandbox to intercept and view email notifications during development. However, for production data spaces, you should route emails through an external SMTP relay.
+   
+   To enable external SMTP routing, configure the following variables:
+   ```yaml
+   mailpit:
+     enabled: false  # Must be false to trigger external SMTP logic
+   smtp:
+     host: "smtp.example.com"
+     user: "your-smtp-username"
+     defaultReceiver: "admin@example.com"
+   ```
+   *Note: For security, the SMTP password is never stored in Git. See the Troubleshooting & Lifecycle Management section below for instructions on how to seed the real password via OpenBao.*
+
 ---
 
 ### Step 2: Deploy the Components
@@ -63,6 +77,27 @@ kubectl apply -f ArgoCD/common_components_manifest.yaml
 ```
 
 ArgoCD will automatically read the configuration and begin spinning up the Common Components in the specified namespace.
+
+#### Retrieve the OpenBao token
+
+Once the Openbao has been initialized, the "secrets-root-token" to access it can be acquired by using kubectl:
+
+```shell
+kubectl -n common get secret secrets-root-token -o jsonpath="{.data.token}" | base64 -d && echo
+```
+
+#### Updating the SMTP Password
+
+For security, the SMTP password is never stored in Git or Helm manifests. It is managed entirely via OpenBao (Vault).
+
+1.  **Initial Seeding:** When the cluster is deployed with `mailpit.enabled: false`, the `openbao-config` job automatically provisions the `common-notifications` Vault secret with the necessary Spring Boot TLS and Port (587) parameters, and seeds a placeholder password: `"update-me-password"`.
+2.  **Manual Update:** A cluster administrator must log into the OpenBao Web UI (`https://secrets.common...`), locate the `common-notifications` secret, and update the `SMTP_PASSWORD` value to the real password.
+3.  **Applying the Password:** Because the Spring Boot application caches Vault secrets on startup, you must restart the notification pod to load the new password:
+    ```bash
+    kubectl rollout restart deployment simpl-notification -n <common-namespace>
+    ```
+
+Once restarted, the `simpl-notification` service will successfully route all data space emails (like onboarding approvals) through your external SMTP relay.
 
 ---
 
@@ -136,3 +171,16 @@ To resolve the split-brain state, you must manually delete the stale credentials
     kubectl rollout restart deployment redpanda -n <common-namespace>
     # Restart any other failing consumers (e.g., simpl-notification, icms)
     ```
+
+### Updating the SMTP Password (Day 2 Operations)
+
+For security, the SMTP password is never stored in Git or Helm manifests. It is managed entirely via OpenBao (Vault).
+
+1.  **Initial Seeding:** When the cluster is deployed with `mailpit.enabled: false`, the `openbao-config` job automatically provisions the `common-notifications` Vault secret with the necessary Spring Boot TLS and Port (587) parameters, and seeds a placeholder password: `"update-me-password"`.
+2.  **Manual Update:** A cluster administrator must log into the OpenBao Web UI (`https://secrets.common...`), locate the `common-notifications` secret, and update the `SMTP_PASSWORD` value to the real password.
+3.  **Applying the Password:** Because the Spring Boot application caches Vault secrets on startup, you must restart the notification pod to load the new password:
+    ```bash
+    kubectl rollout restart deployment simpl-notification -n <common-namespace>
+    ```
+
+Once restarted, the `simpl-notification` service will successfully route all data space emails (like onboarding approvals) through your external SMTP relay.
