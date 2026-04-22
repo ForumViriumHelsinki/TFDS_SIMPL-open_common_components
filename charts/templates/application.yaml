@@ -444,7 +444,11 @@ spec:
           otel:
             endpoint: http://collector.{{ .Values.namespaceTag }}.{{ .Values.domainSuffix }}
           env:
-            OTEL_JAVAAGENT_ENABLED: "{{ ternary "true" "false" .Values.monitoring.enabled }}"
+            {{- if not .Values.monitoring.enabled }}
+            OTEL_TRACES_EXPORTER: "none"
+            OTEL_METRICS_EXPORTER: "none"
+            OTEL_LOGS_EXPORTER: "none"
+            {{- end }}
           {{- if .Values.mailpit.enabled }}
           mail:
             smtpHost: mailpit-{{ .Values.cluster.namespace }}-smtp
@@ -506,7 +510,11 @@ spec:
           otel:
             endpoint: http://collector.{{ .Values.namespaceTag }}.{{ .Values.domainSuffix }}
           env:
-            OTEL_JAVAAGENT_ENABLED: "{{ ternary "true" "false" .Values.monitoring.enabled }}"
+            {{- if not .Values.monitoring.enabled }}
+            OTEL_TRACES_EXPORTER: "none"
+            OTEL_METRICS_EXPORTER: "none"
+            OTEL_LOGS_EXPORTER: "none"
+            {{- end }}
         {{- if eq .Values.resourcePreset "low" }}
         resources:
           requests:
